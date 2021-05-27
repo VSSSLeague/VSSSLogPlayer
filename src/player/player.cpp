@@ -113,32 +113,27 @@ void Player::setFrame(qint64 timeValue) {
 }
 
 void Player::run() {
-    while(true) {
+    while(!_pauseEnabled) {
         _dataMutex.lock();
         QList<qint64> timeStamps = _datagramsMapping.keys();
+        Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame));
         _dataMutex.unlock();
 
-        if(!_pauseEnabled) {
+        reproducePacket(element);
+
+        emit sendTimeStamp(timeStamps.at(_actualFrame) - timeStamps.first());
+
+        if(_actualFrame == timeStamps.size() - 1) {
             _dataMutex.lock();
-            Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame));
+            Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame + 1));
             _dataMutex.unlock();
 
             reproducePacket(element);
-
-            emit sendTimeStamp(timeStamps.at(_actualFrame) - timeStamps.first());
-
-            if(_actualFrame == timeStamps.size() - 1) {
-                _dataMutex.lock();
-                Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame + 1));
-                _dataMutex.unlock();
-
-                reproducePacket(element);
-                _pauseEnabled = true;
-            }
-            else {
-                std::this_thread::sleep_for(std::chrono::milliseconds(timeStamps.at(_actualFrame + 1) - timeStamps.at(_actualFrame)));
-                _actualFrame++;
-            }
+            _pauseEnabled = true;
+        }
+        else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(timeStamps.at(_actualFrame + 1) - timeStamps.at(_actualFrame)));
+            _actualFrame++;
         }
     }
 }
@@ -233,6 +228,14 @@ void Player::playExecution() {
 
 void Player::pauseExecution() {
     _pauseEnabled = true;
+}
+
+bool Player::completedExecution() {
+    if(_file == nullptr) {
+        return true;
+    }
+
+    return !_file->isReadable();
 }
 
 Frame Player::takeFrame(qint64 timeStamp) {

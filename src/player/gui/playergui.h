@@ -1,6 +1,7 @@
 #ifndef PLAYERGUI_H
 #define PLAYERGUI_H
 
+#include <QStyleFactory>
 #include <QMainWindow>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -47,7 +48,9 @@ private:
     QVBoxLayout *_terminalMainLayout;
     QTextEdit *_terminal;
 
+    void setDarkTheme();
     void loadWidgets();
+    void loadTime(qint64 currentTime, qint64 totalTime);
 
 public slots:
     void updateSlider(qint64 timeStamp);

@@ -35,6 +35,7 @@ public:
     void setFrame(qint64 timeValue);
     void playExecution();
     void pauseExecution();
+    bool completedExecution();
 
     //
     Frame takeFrame(qint64 timeStamp);

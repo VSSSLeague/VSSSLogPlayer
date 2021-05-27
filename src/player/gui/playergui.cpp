@@ -13,8 +13,8 @@ PlayerGUI::PlayerGUI(Player *player, QWidget *parent) : QMainWindow(parent), ui(
     // Load widgets
     loadWidgets();
 
-    // Run
-    _player->start();
+    // Set dark theme
+    setDarkTheme();
 
     // Connect player change timeStamp
     QObject::connect(_player, &Player::sendTimeStamp, this, &PlayerGUI::updateSlider);
@@ -25,6 +25,34 @@ PlayerGUI::PlayerGUI(Player *player, QWidget *parent) : QMainWindow(parent), ui(
 
 PlayerGUI::~PlayerGUI() {
     delete ui;
+}
+
+void PlayerGUI::setDarkTheme() {
+    this->setStyle(QStyleFactory::create("Fusion"));
+
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window,QColor(53,53,53));
+    darkPalette.setColor(QPalette::WindowText,Qt::white);
+    darkPalette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
+    darkPalette.setColor(QPalette::Base,QColor(42,42,42));
+    darkPalette.setColor(QPalette::AlternateBase,QColor(66,66,66));
+    darkPalette.setColor(QPalette::ToolTipBase,Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText,Qt::white);
+    darkPalette.setColor(QPalette::Text,Qt::white);
+    darkPalette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
+    darkPalette.setColor(QPalette::Dark,QColor(35,35,35));
+    darkPalette.setColor(QPalette::Shadow,QColor(20,20,20));
+    darkPalette.setColor(QPalette::Button,QColor(53,53,53));
+    darkPalette.setColor(QPalette::ButtonText,Qt::white);
+    darkPalette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
+    darkPalette.setColor(QPalette::BrightText,Qt::red);
+    darkPalette.setColor(QPalette::Link,QColor(42,130,218));
+    darkPalette.setColor(QPalette::Highlight,QColor(42,130,218));
+    darkPalette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
+    darkPalette.setColor(QPalette::HighlightedText,Qt::white);
+    darkPalette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
+
+    this->setPalette(darkPalette);
 }
 
 void PlayerGUI::loadWidgets() {
@@ -56,6 +84,7 @@ void PlayerGUI::loadWidgets() {
             _terminal->insertPlainText("Could not play log file. Have you opened one?\n");
         }
         else {
+            _player->start();
             _player->playExecution();
         }
     });
@@ -104,7 +133,27 @@ void PlayerGUI::loadWidgets() {
     });
 
     // Adding video time label
-    _videoControlsLayout->addWidget(_videoTimeLabel = new QLabel("00:00 / 00:00"));
+    _videoControlsLayout->addWidget(_videoTimeLabel = new QLabel("00:00:00 / 00:00:00"));
+}
+
+void PlayerGUI::loadTime(qint64 currentTime, qint64 totalTime) {
+    currentTime = currentTime / 1000.0;
+    totalTime = totalTime / 1000.0;
+
+    char buf[100];
+
+    int currentHours = currentTime/3600;
+    int currentMinutes = (currentTime - (currentHours * 3600))/60;
+    int currentSeconds = currentTime - (currentMinutes * 60) - (currentHours * 3600);
+
+    int totalHours = totalTime/3600;
+    int totalMinutes = (totalTime - (totalHours * 3600))/60;
+    int totalSeconds = totalTime - (totalMinutes * 60) - (totalHours * 3600);
+
+    sprintf(buf, "%02d:%02d:%02d / %02d:%02d:%02d", currentHours, currentMinutes, currentSeconds,
+                                               totalHours, totalMinutes, totalSeconds);
+
+    _videoTimeLabel->setText(buf);
 }
 
 void PlayerGUI::loadFile() {
@@ -114,6 +163,8 @@ void PlayerGUI::loadFile() {
 
     _videoSlider->setRange(0, _player->maxTimeStamp());
     _videoSlider->setValue(0);
+
+    loadTime(0, _player->maxTimeStamp());
 }
 
 void PlayerGUI::updateSlider(qint64 timeStamp) {
@@ -136,4 +187,6 @@ void PlayerGUI::updateSlider(qint64 timeStamp) {
                                    .arg(VSSRef::Color_Name(refCommand.teamcolor()).c_str())
                                    .arg(VSSRef::Quadrant_Name(refCommand.foulquadrant()).c_str()));
     }
+
+    loadTime(timeStamp, _player->maxTimeStamp());
 }

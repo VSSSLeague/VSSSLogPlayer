@@ -164,6 +164,7 @@ void PlayerGUI::loadFile() {
 }
 
 void PlayerGUI::updateSlider(qint64 timeStamp) {
+    updateSliderRange();
     _videoSlider->setValue(timeStamp);
 
     Frame frame = _player->takeFrame(timeStamp);

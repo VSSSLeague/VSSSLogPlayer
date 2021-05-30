@@ -73,6 +73,7 @@ private:
 
 signals:
     void sendTimeStamp(qint64 timeStamp);
+    void updateSliderRange();
 };
 
 #endif // PLAYER_H

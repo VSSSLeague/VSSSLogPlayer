@@ -18,6 +18,7 @@ PlayerGUI::PlayerGUI(Player *player, QWidget *parent) : QMainWindow(parent), ui(
 
     // Connect player change timeStamp
     QObject::connect(_player, &Player::sendTimeStamp, this, &PlayerGUI::updateSlider);
+    QObject::connect(_player, &Player::updateSliderRange, this, &PlayerGUI::updateSliderRange);
 
     // Connect action to loadFile
     QObject::connect(ui->actionLoad_log_file, &QAction::triggered, this, &PlayerGUI::loadFile);
@@ -160,11 +161,6 @@ void PlayerGUI::loadFile() {
     QString fileName = QFileDialog::getOpenFileName();
     _player->setFileName(fileName);
     _terminal->insertPlainText("Opened file: " + fileName + '\n');
-
-    _videoSlider->setRange(0, _player->maxTimeStamp());
-    _videoSlider->setValue(0);
-
-    loadTime(0, _player->maxTimeStamp());
 }
 
 void PlayerGUI::updateSlider(qint64 timeStamp) {
@@ -189,4 +185,11 @@ void PlayerGUI::updateSlider(qint64 timeStamp) {
     }
 
     loadTime(timeStamp, _player->maxTimeStamp());
+}
+
+void PlayerGUI::updateSliderRange() {
+    _videoSlider->setRange(0, _player->maxTimeStamp());
+    _videoSlider->setValue(0);
+
+    loadTime(0, _player->maxTimeStamp());
 }

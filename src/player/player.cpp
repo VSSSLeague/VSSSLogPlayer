@@ -163,6 +163,8 @@ void Player::loadFile() {
         _datagramsMapping.insert(timeStamp, packet);
     }
     _dataMutex.unlock();
+
+    emit updateSliderRange();
 }
 
 void Player::openFile() {

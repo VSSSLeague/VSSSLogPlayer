@@ -54,6 +54,7 @@ private:
 
 public slots:
     void updateSlider(qint64 timeStamp);
+    void updateSliderRange();
     void loadFile();
 };
 

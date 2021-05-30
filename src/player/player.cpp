@@ -76,6 +76,10 @@ qint64 Player::maxTimeStamp() {
     QList<qint64> timeStamps = _datagramsMapping.keys();
     _dataMutex.unlock();
 
+    if(timeStamps.isEmpty()) {
+        return 0;
+    }
+
     return (timeStamps.last() - timeStamps.first());
 }
 

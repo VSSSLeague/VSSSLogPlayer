@@ -22,6 +22,9 @@ PlayerGUI::PlayerGUI(Player *player, QWidget *parent) : QMainWindow(parent), ui(
 
     // Connect action to loadFile
     QObject::connect(ui->actionLoad_log_file, &QAction::triggered, this, &PlayerGUI::loadFile);
+
+    // Update range
+    updateSliderRange();
 }
 
 PlayerGUI::~PlayerGUI() {
@@ -164,7 +167,6 @@ void PlayerGUI::loadFile() {
 }
 
 void PlayerGUI::updateSlider(qint64 timeStamp) {
-    updateSliderRange();
     _videoSlider->setValue(timeStamp);
 
     Frame frame = _player->takeFrame(timeStamp);

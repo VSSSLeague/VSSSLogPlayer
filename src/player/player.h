@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QFile>
+#include <QFileInfo>
 #include <QMutex>
 #include <QUdpSocket>
 #include <QDataStream>
@@ -26,7 +27,7 @@ public:
     ~Player();
 
     // File management
-    void setFileName(QString fileName);
+    bool setFileName(QString fileName);
     bool canReadFile();
     qint64 maxTimeStamp();
 

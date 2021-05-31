@@ -162,8 +162,12 @@ void PlayerGUI::loadTime(qint64 currentTime, qint64 totalTime) {
 
 void PlayerGUI::loadFile() {
     QString fileName = QFileDialog::getOpenFileName();
-    _player->setFileName(fileName);
-    _terminal->insertPlainText("Opened file: " + fileName + '\n');
+    if(_player->setFileName(fileName)) {
+        _terminal->insertPlainText("Opened file: " + fileName + '\n');
+    }
+    else {
+        _terminal->insertPlainText("Failed to open file: " + fileName + '\n');
+    }
 }
 
 void PlayerGUI::updateSlider(qint64 timeStamp) {

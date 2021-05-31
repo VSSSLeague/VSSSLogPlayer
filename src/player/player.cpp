@@ -18,8 +18,9 @@ Player::Player(QString visionAddress, quint16 visionPort, QString refereeAddress
 
     // Check if fileName != ""
     if(fileName != "") {
-        _fileName = fileName;
-        openFile();
+        if(!setFileName(fileName)) {
+            return ;
+        }
     }
 
     // Connect to networks
@@ -28,7 +29,7 @@ Player::Player(QString visionAddress, quint16 visionPort, QString refereeAddress
 }
 
 Player::~Player() {
-    if(_file == nullptr) {
+    if(_file != nullptr) {
         // Closing file
         if(_file->isOpen()) {
             _file->close();
@@ -94,9 +95,21 @@ void Player::reproducePacket(Frame frame) {
     }
 }
 
-void Player::setFileName(QString fileName) {
+bool Player::setFileName(QString fileName) {
     _fileName = fileName;
-    openFile();
+
+    // Take file info
+    QFileInfo fi(_fileName);
+
+    // Check if is '.log' extension
+    if(fi.completeSuffix() == "log") {
+        openFile();
+        return true;
+    }
+    else {
+        std::cout << Text::cyan("[PLAYER] ", true) + Text::red("Error opening file '" + _fileName.toStdString() + "', the file has an wrong format.", true) + '\n';
+        return false;
+    }
 }
 
 void Player::setFrame(qint64 timeValue) {

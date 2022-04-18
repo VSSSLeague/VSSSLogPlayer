@@ -74,7 +74,7 @@ bool Player::canReadFile() {
 
 qint64 Player::maxTimeStamp() {
     _dataMutex.lock();
-    QList<qint64> timeStamps = _datagramsMapping.keys();
+    QList<qint64> timeStamps = _datagramsMapping.uniqueKeys();
     _dataMutex.unlock();
 
     if(timeStamps.isEmpty()) {
@@ -114,7 +114,7 @@ bool Player::setFileName(QString fileName) {
 
 void Player::setFrame(qint64 timeValue) {
     _dataMutex.lock();
-    QList<qint64> timeStamps = _datagramsMapping.keys();
+    QList<qint64> timeStamps = _datagramsMapping.uniqueKeys();
     qint64 frameReference = timeValue + timeStamps.at(0);
 
     QList<qint64>::iterator lowBound;
@@ -122,30 +122,35 @@ void Player::setFrame(qint64 timeValue) {
 
     _actualFrame = (lowBound - timeStamps.begin());
 
-    Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame));
+    QList<Frame> element = _datagramsMapping.values(timeStamps.at(_actualFrame));
     _dataMutex.unlock();
 
-    reproducePacket(element);
+    for (const auto& f: element) {
+        reproducePacket(f);
+    }
     emit sendTimeStamp(timeStamps.at(_actualFrame) - timeStamps.first());
 }
 
 void Player::run() {
     while(!_pauseEnabled) {
         _dataMutex.lock();
-        QList<qint64> timeStamps = _datagramsMapping.keys();
-        Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame));
+        QList<qint64> timeStamps = _datagramsMapping.uniqueKeys();
+        QList<Frame> element = _datagramsMapping.values(timeStamps.at(_actualFrame));
         _dataMutex.unlock();
 
-        reproducePacket(element);
+        for (const auto& f: element) {
+            reproducePacket(f);
+        }
 
         emit sendTimeStamp(timeStamps.at(_actualFrame) - timeStamps.first());
 
         if(_actualFrame == timeStamps.size() - 1) {
             _dataMutex.lock();
-            Frame element = _datagramsMapping.value(timeStamps.at(_actualFrame + 1));
+            QList<Frame> element = _datagramsMapping.values(timeStamps.at(_actualFrame + 1));
             _dataMutex.unlock();
-
-            reproducePacket(element);
+            for (const auto& f: element) {
+                reproducePacket(f);
+            }
             _pauseEnabled = true;
         }
         else {
@@ -257,15 +262,15 @@ bool Player::completedExecution() {
     return !_file->isReadable();
 }
 
-Frame Player::takeFrame(qint64 timeStamp) {
+QList<Frame> Player::takeFrames(qint64 timeStamp) {
     _dataMutex.lock();
-    QList<qint64> timeStamps = _datagramsMapping.keys();
+    QList<qint64> timeStamps = _datagramsMapping.uniqueKeys();
     qint64 frameReference = timeStamp + timeStamps.at(0);
 
     QList<qint64>::iterator lowBound;
     lowBound = std::lower_bound(timeStamps.begin(), timeStamps.end(), frameReference);
 
-    Frame element = _datagramsMapping.value(timeStamps.at(lowBound - timeStamps.begin()));
+    QList<Frame> element = _datagramsMapping.values(timeStamps.at(lowBound - timeStamps.begin()));
     _dataMutex.unlock();
 
     return element;

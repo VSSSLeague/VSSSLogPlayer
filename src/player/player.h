@@ -39,7 +39,7 @@ public:
     bool completedExecution();
 
     //
-    Frame takeFrame(qint64 timeStamp);
+    QList<Frame> takeFrames(qint64 timeStamp);
 
 private:
     // QThread inherit
@@ -53,7 +53,7 @@ private:
     void readDatagram(MessageType &messageType, QByteArray &data, qint64 &timeStamp);
 
     // Frames
-    QMap<qint64, Frame> _datagramsMapping;
+    QMultiMap<qint64, Frame> _datagramsMapping;
 
     // Vision network
     QUdpSocket *_visionSocket;

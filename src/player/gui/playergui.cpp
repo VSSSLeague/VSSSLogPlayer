@@ -173,22 +173,25 @@ void PlayerGUI::loadFile() {
 void PlayerGUI::updateSlider(qint64 timeStamp) {
     _videoSlider->setValue(timeStamp);
 
-    Frame frame = _player->takeFrame(timeStamp);
-    if(frame._messageType == MessageType::MESSAGE_VISION) {
-        fira_message::sim_to_ref::Environment env;
-        env.ParseFromArray(frame._data.data(), frame._data.size());
+    QList<Frame> frames = _player->takeFrames(timeStamp);
 
-        _videoWidget->updateFieldObjects(env);
-        _videoWidget->redraw();
-    }
-    else {
-        VSSRef::ref_to_team::VSSRef_Command refCommand;
-        refCommand.ParseFromArray(frame._data.data(), frame._data.size());
+    for (const auto& f: frames) {
+        if(f._messageType == MessageType::MESSAGE_VISION) {
+            fira_message::sim_to_ref::Environment env;
+            env.ParseFromArray(f._data.data(), f._data.size());
 
-        _terminal->insertPlainText(QString("[REFEREE] Received command from referee: %1 for team %2 at quadrant %3.\n")
-                                   .arg(VSSRef::Foul_Name(refCommand.foul()).c_str())
-                                   .arg(VSSRef::Color_Name(refCommand.teamcolor()).c_str())
-                                   .arg(VSSRef::Quadrant_Name(refCommand.foulquadrant()).c_str()));
+            _videoWidget->updateFieldObjects(env);
+            _videoWidget->redraw();
+        }
+        else {
+            VSSRef::ref_to_team::VSSRef_Command refCommand;
+            refCommand.ParseFromArray(f._data.data(), f._data.size());
+
+            _terminal->insertPlainText(QString("[REFEREE] Received command from referee: %1 for team %2 at quadrant %3.\n")
+                                    .arg(VSSRef::Foul_Name(refCommand.foul()).c_str())
+                                    .arg(VSSRef::Color_Name(refCommand.teamcolor()).c_str())
+                                    .arg(VSSRef::Quadrant_Name(refCommand.foulquadrant()).c_str()));
+        }
     }
 
     loadTime(timeStamp, _player->maxTimeStamp());
